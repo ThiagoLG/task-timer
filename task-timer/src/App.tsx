@@ -5,7 +5,6 @@ import { defaultTheme } from './styles/themes/default'
 export function App() {
   return (
     <ThemeProvider theme={defaultTheme}>
-
       <div className="App">
         <h1>Teste</h1>
       </div>
