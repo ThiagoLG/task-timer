@@ -97,7 +97,9 @@
 	"editor.bracketPairColorization.independentColorPoolPerBracketType": false,
 
 	// Code Action kinds to be run on save.
-	"editor.codeActionsOnSave": {},
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": true
+	},
 
 	// Enable/disable showing group headers in the Code Action menu.
 	"editor.codeActionWidget.showHeaders": true,
