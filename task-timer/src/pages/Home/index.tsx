@@ -1,8 +1,8 @@
+// #region ***** Imports *****
 import { Play } from 'phosphor-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
-
 import {
   CountdownContainer,
   FormContainer,
@@ -12,12 +12,10 @@ import {
   StartCountdownButton,
   TaskInput,
 } from './styles'
+import { useState } from 'react'
+// #endregion ** Imports *****
 
-// interface NewCycleFormData {
-//   task: string
-//   minutesAmount: number
-// }
-
+// #region ***** Typings/Validations *****
 const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
   minutesAmount: zod
@@ -28,7 +26,17 @@ const newCycleFormValidationSchema = zod.object({
 
 type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
+interface Cycle {
+  id: string
+  task: string
+  minutesAmount: number
+}
+// #endregion ** Typings/Validations *****
+
 export function Home() {
+  // #region ***** States/Hooks *****
+  const [cycles, setCycles] = useState<Cycle[]>([])
+  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
     defaultValues: {
@@ -36,15 +44,32 @@ export function Home() {
       minutesAmount: 0,
     },
   })
+  // #endregion ** States/Hooks *****
 
-  function handleCreateNewCicle(data: any) {
+  // #region ***** Form handlers *****
+  function handleCreateNewCicle(data: NewCycleFormData) {
     console.log(data)
+
+    const newCycle: Cycle = {
+      id: String(new Date().getTime()),
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+    }
+
+    setCycles((state) => [...state, newCycle])
+    setActiveCycleId(newCycle.id)
+
     reset()
   }
+  // #endregion ** Form handlers *****
 
+  // #region ***** Aux Functions and Controllers *****
   const task = watch('task')
   const isSubmitDisabled = !task
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+  // #endregion ** Aux Functions and Controllers *****
 
+  // #region ***** Component render *****
   return (
     <HomeContainer>
       <form action="" onSubmit={handleSubmit(handleCreateNewCicle)}>
@@ -94,4 +119,5 @@ export function Home() {
       </form>
     </HomeContainer>
   )
+  // #endregion ** Component render *****
 }
