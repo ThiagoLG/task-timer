@@ -1,8 +1,9 @@
 // #region ***** Imports *****
-import { Play, TextAlignCenter } from 'phosphor-react'
+import { Play } from 'phosphor-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
+import { differenceInSeconds } from 'date-fns'
 import {
   CountdownContainer,
   FormContainer,
@@ -12,7 +13,7 @@ import {
   StartCountdownButton,
   TaskInput,
 } from './styles'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 // #endregion ** Imports *****
 
 // #region ***** Typings/Validations *****
@@ -30,6 +31,7 @@ interface Cycle {
   id: string
   task: string
   minutesAmount: number
+  startedAt: Date
 }
 // #endregion ** Typings/Validations *****
 
@@ -38,6 +40,7 @@ export function Home() {
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
   const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
 
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
@@ -46,19 +49,27 @@ export function Home() {
       minutesAmount: 0,
     },
   })
+
+  useEffect(() => {
+    if (activeCycle) {
+      setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startedAt),
+        )
+      }, 1000)
+    }
+  }, [activeCycle])
   // #endregion ** States/Hooks *****
 
   // #region ***** Aux Functions, Variables and Controllers *****
-  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
-
   const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
   const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
 
-  const minutesAmount = Math.floor(currentSeconds / 60)
-  const secondsAmount = currentSeconds % 60
+  const minutesAmountLeft = Math.floor(currentSeconds / 60)
+  const secondsAmountLeft = currentSeconds % 60
 
-  const minutes = String(minutesAmount).padStart(2, '0')
-  const seconds = String(secondsAmount).padStart(2, '0')
+  const minutes = String(minutesAmountLeft).padStart(2, '0')
+  const seconds = String(secondsAmountLeft).padStart(2, '0')
 
   const task = watch('task')
   const isSubmitDisabled = !task
@@ -66,12 +77,11 @@ export function Home() {
 
   // #region ***** Form handlers *****
   function handleCreateNewCicle(data: NewCycleFormData) {
-    console.log(data)
-
     const newCycle: Cycle = {
       id: String(new Date().getTime()),
       task: data.task,
       minutesAmount: data.minutesAmount,
+      startedAt: new Date(),
     }
 
     setCycles((state) => [...state, newCycle])
