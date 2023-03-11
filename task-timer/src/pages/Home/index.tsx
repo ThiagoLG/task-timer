@@ -1,5 +1,5 @@
 // #region ***** Imports *****
-import { Play } from 'phosphor-react'
+import { Play, TextAlignCenter } from 'phosphor-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as zod from 'zod'
@@ -37,6 +37,8 @@ export function Home() {
   // #region ***** States/Hooks *****
   const [cycles, setCycles] = useState<Cycle[]>([])
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const [amountSecondsPassed, setAmountSecondsPassed] = useState(0)
+
   const { register, handleSubmit, watch, reset } = useForm<NewCycleFormData>({
     resolver: zodResolver(newCycleFormValidationSchema),
     defaultValues: {
@@ -45,6 +47,22 @@ export function Home() {
     },
   })
   // #endregion ** States/Hooks *****
+
+  // #region ***** Aux Functions, Variables and Controllers *****
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
+
+  const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0
+  const currentSeconds = activeCycle ? totalSeconds - amountSecondsPassed : 0
+
+  const minutesAmount = Math.floor(currentSeconds / 60)
+  const secondsAmount = currentSeconds % 60
+
+  const minutes = String(minutesAmount).padStart(2, '0')
+  const seconds = String(secondsAmount).padStart(2, '0')
+
+  const task = watch('task')
+  const isSubmitDisabled = !task
+  // #endregion ** Aux Functions, Variables and Controllers *****
 
   // #region ***** Form handlers *****
   function handleCreateNewCicle(data: NewCycleFormData) {
@@ -62,12 +80,6 @@ export function Home() {
     reset()
   }
   // #endregion ** Form handlers *****
-
-  // #region ***** Aux Functions and Controllers *****
-  const task = watch('task')
-  const isSubmitDisabled = !task
-  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
-  // #endregion ** Aux Functions and Controllers *****
 
   // #region ***** Component render *****
   return (
@@ -105,11 +117,11 @@ export function Home() {
         </FormContainer>
 
         <CountdownContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{minutes[0]}</span>
+          <span>{minutes[1]}</span>
           <Separator>:</Separator>
-          <span>0</span>
-          <span>0</span>
+          <span>{seconds[0]}</span>
+          <span>{seconds[1]}</span>
         </CountdownContainer>
 
         <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
