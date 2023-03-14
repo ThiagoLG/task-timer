@@ -49,16 +49,6 @@ export function Home() {
       minutesAmount: 0,
     },
   })
-
-  useEffect(() => {
-    if (activeCycle) {
-      setInterval(() => {
-        setAmountSecondsPassed(
-          differenceInSeconds(new Date(), activeCycle.startedAt),
-        )
-      }, 1000)
-    }
-  }, [activeCycle])
   // #endregion ** States/Hooks *****
 
   // #region ***** Aux Functions, Variables and Controllers *****
@@ -86,10 +76,35 @@ export function Home() {
 
     setCycles((state) => [...state, newCycle])
     setActiveCycleId(newCycle.id)
+    setAmountSecondsPassed(0)
 
     reset()
   }
   // #endregion ** Form handlers *****
+
+  // #region ***** Watchers *****
+  useEffect(() => {
+    let interval: number
+
+    if (activeCycle) {
+      interval = setInterval(() => {
+        setAmountSecondsPassed(
+          differenceInSeconds(new Date(), activeCycle.startedAt),
+        )
+      }, 1000)
+    }
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [activeCycle])
+
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `Task Timer (${minutes}:${seconds})`
+    }
+  }, [activeCycle, minutes, seconds])
+  // #endregion ** Watchers *****
 
   // #region ***** Component render *****
   return (
