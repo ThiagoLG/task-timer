@@ -22,7 +22,7 @@ const newCycleFormValidationSchema = zod.object({
   task: zod.string().min(1, 'Informe a tarefa'),
   minutesAmount: zod
     .number()
-    .min(5, 'O ciclo deve ter no mínimo 5 mimutos.')
+    .min(1, 'O ciclo deve ter no mínimo 5 mimutos.')
     .max(60, 'O ciclo deve ter no máximo 60 minutos.'),
 })
 
@@ -34,6 +34,7 @@ interface Cycle {
   minutesAmount: number
   startedAt: Date
   interruptedDate?: Date
+  finishedDate?: Date
 }
 // #endregion ** Typings/Validations *****
 
@@ -83,8 +84,8 @@ export function Home() {
     reset()
   }
   function handleInterruptCycle() {
-    setCycles(
-      cycles.map((cycle) => {
+    setCycles((state) =>
+      state.map((cycle) => {
         if (cycle.id === activeCycleId) {
           return { ...cycle, interruptedDate: new Date() }
         } else {
@@ -102,6 +103,27 @@ export function Home() {
 
     if (activeCycle) {
       interval = setInterval(() => {
+        const totalCycleSecondsPassed = differenceInSeconds(
+          new Date(),
+          activeCycle.startedAt,
+        )
+
+        if (totalCycleSecondsPassed > totalSeconds) {
+          setCycles((state) =>
+            state.map((cycle) => {
+              if (cycle.id === activeCycleId) {
+                return { ...cycle, finishedDate: new Date() }
+              } else {
+                return cycle
+              }
+            }),
+          )
+          setActiveCycleId(null)
+          clearInterval(interval)
+        } else {
+          setAmountSecondsPassed(totalCycleSecondsPassed)
+        }
+
         setAmountSecondsPassed(
           differenceInSeconds(new Date(), activeCycle.startedAt),
         )
@@ -111,7 +133,7 @@ export function Home() {
     return () => {
       clearInterval(interval)
     }
-  }, [activeCycle])
+  }, [activeCycle, totalSeconds, activeCycleId])
 
   useEffect(() => {
     if (activeCycle) {
@@ -147,7 +169,7 @@ export function Home() {
             type="number"
             id="minutesAmount"
             placeholder="00"
-            min={5}
+            min={1}
             max={60}
             step={5}
             disabled={!!activeCycle}
